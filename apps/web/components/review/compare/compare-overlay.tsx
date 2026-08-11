@@ -281,19 +281,27 @@ export function CompareOverlay({ asset, versions, rightVersion, onClose, canComm
 
   // Version switch (either pane): offA/offB were calibrated for the OLD pair —
   // they no longer describe the new one, so drop them rather than silently
-  // misapplying a stale sync offset to the new pair (#182).
+  // misapplying a stale sync offset to the new pair (#182). The switched
+  // pane's shown drawing is likewise stale — it was frame-anchored to a
+  // comment on the OLD version and must not hang over the new one (#181).
   const handleSwitchLeft = React.useCallback(
     (v: AssetVersion) => {
       writeParams((p) => { p.set('compare', v.id); p.delete('offA'); p.delete('offB') })
+      setAnnotationA(null)
+      setLastAnnotationSide((prev) => (prev === 'a' ? null : prev))
+      setFocusedCommentId(null)
     },
-    [writeParams],
+    [writeParams, setFocusedCommentId],
   )
   const handleSwitchRight = React.useCallback(
     (v: AssetVersion) => {
       writeParams((p) => { p.delete('offA'); p.delete('offB') })
       setCurrentVersion(v)
+      setAnnotationB(null)
+      setLastAnnotationSide((prev) => (prev === 'b' ? null : prev))
+      setFocusedCommentId(null)
     },
-    [writeParams, setCurrentVersion],
+    [writeParams, setCurrentVersion, setFocusedCommentId],
   )
 
   // Shared zoom/pan for image modes
